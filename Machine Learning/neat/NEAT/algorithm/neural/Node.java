@@ -1,0 +1,25 @@
+package NEAT.algorithm.neural;
+
+import NEAT.algorithm.hierarchy.Genome;
+import NEAT.task.Objective;
+
+public class Node extends Genome {
+
+	public static final int NODE_TYPE_INPUT = 1;
+	public static final int NODE_TYPE_HIDDEN = 2;
+	public static final int NODE_TYPE_OUTPUT = 3;
+	
+	private int nodeType;
+	private int nodeID;
+	
+	public Node(int nodeType, int inivationNum, Objective obj) {
+		super(obj);
+		this.nodeType = nodeType;
+		this.nodeID = inivationNum;
+	}
+	
+	private double sigmoid(double num) {
+		return num;
+	}
+	
+}
