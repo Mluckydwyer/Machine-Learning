@@ -12,10 +12,13 @@ public class Node extends Genome {
 	private int nodeType;
 	private int nodeID;
 	
+	private double value;
+	
 	public Node(int nodeType, int inivationNum, Objective obj) {
 		super(obj);
 		this.nodeType = nodeType;
 		this.nodeID = inivationNum;
+		value = 0;
 	}
 	
 	private double sigmoid(double num) {
