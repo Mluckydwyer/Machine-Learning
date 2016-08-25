@@ -1,17 +1,24 @@
 package NEAT.algorithm;
 
-import NEAT.algorithm.neural.NeuralNetwork;
+import java.util.ArrayList;
+
+import NEAT.algorithm.hierarchy.Generation;
 import NEAT.task.Objective;
 
 public class Scholar {
 
-	public Objective obj;
+	public static Objective obj;
+	
+	public ArrayList<Generation> generations;
+	
+	public static final int GENOME_COUNT_IN_POOL = 300;
 	
 	private int nodeIDCounter;
 	private int innovationNumCounter;
 	
 	public Scholar(Objective obj) {
-		this.obj = obj;
+		Scholar.obj = obj;
+		generations = new ArrayList<Generation>();
 		nodeIDCounter = 1;
 		innovationNumCounter = 1;
 	}
@@ -24,7 +31,13 @@ public class Scholar {
 		return innovationNumCounter++;
 	}
 	
-	public void testGeneration() {
-		obj.calculateFitness(new NeuralNetwork(obj));
+	public void learn() {
+		Generation firstGen = new Generation();
+		firstGen.setFirstGen(true);
+		generations.add(firstGen.genNextGen());
+	}
+	
+	public void evolve() {
+		generations.add(generations.get(generations.size() - 1).genNextGen());
 	}
 }

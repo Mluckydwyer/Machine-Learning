@@ -7,11 +7,15 @@ public abstract class Objective {
 
 	public int		inputNodeCount;
 	public int		outputNodeCount;
+	public int		targetFitness;
+	public boolean	simultainiousTests;
 	private Scholar			neat;
 
-	public Objective(int inputNodes, int outputNodes) {
+	public Objective(int inputNodes, int outputNodes, int targetFitness, boolean simTests) {
 		inputNodeCount = inputNodes;
 		outputNodeCount = outputNodes;
+		simultainiousTests = simTests;
+		this.targetFitness = targetFitness;
 		
 		setupNetwork();
 	}

@@ -14,8 +14,7 @@ public class Node extends Genome {
 	
 	private double value;
 	
-	public Node(int nodeType, int inivationNum, Objective obj) {
-		super(obj);
+	public Node(int nodeType, int inivationNum) {
 		this.nodeType = nodeType;
 		this.nodeID = inivationNum;
 		value = 0;
@@ -25,4 +24,11 @@ public class Node extends Genome {
 		return num;
 	}
 	
+	public int getNodeID() {
+		return nodeID;
+	}
+	
+	public int getNodeType() {
+		return nodeType;
+	}
 }

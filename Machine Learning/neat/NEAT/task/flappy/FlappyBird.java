@@ -21,28 +21,30 @@ import NEAT.task.Objective;
 
 public class FlappyBird extends Objective implements ActionListener, MouseListener, KeyListener {
 
-	private static int				inputNodes	= 3;
-	private static int				outputNodes	= 1;
-	private int						fitness		= 0;
-	private int						distance	= 0;
-	private boolean					human		= true;
+	private static int				inputNodes		= 3;
+	private static int				outputNodes		= 1;
+	private int						fitness			= 0;
+	private static int				targetFitness	= 20000;
+	private int						distance		= 0;
+	private boolean					human			= true;
+	private static boolean			simTests		= false;
 	private NeuralNetwork			n;
 
-	private final int				WIDTH		= 800;
-	private final int				HEIGHT		= 800;
+	private final int				WIDTH			= 800;
+	private final int				HEIGHT			= 800;
 
-	private final int				pipeSpacing	= 600;
-	private final int				pipeWidth	= 100;
-	private final int				pipeGap		= 180;
-	private final int				speed		= 5;
-	private final int				jumpHeight	= 15;
+	private final int				pipeSpacing		= 600;
+	private final int				pipeWidth		= 100;
+	private final int				pipeGap			= 180;
+	private final int				speed			= 5;
+	private final int				jumpHeight		= 15;
 
-	private boolean					gameOver	= false;
-	private boolean					started		= false;
+	private boolean					gameOver		= false;
+	private boolean					started			= false;
 
-	private int						yMotion		= 0;
-	private int						score		= 0;
-	private int						ticks		= 0;
+	private int						yMotion			= 0;
+	private int						score			= 0;
+	private int						ticks			= 0;
 
 	private JFrame					jf;
 	private Timer					timer;
@@ -50,8 +52,17 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 	private Rectangle				bird;
 	private ArrayList<Rectangle>	pipes;
 
+	public static void main(String[] args) {
+		boolean humanPlayer = false;
+		
+		if (humanPlayer) System.out.println("Flappy Bird Game Starting In Play Mode");
+		else System.out.println("Flappy Bird Game Starting In NEAT Maching Learning Mode");
+		
+		FlappyBird run = new FlappyBird(humanPlayer);
+	}
+	
 	public FlappyBird(boolean human) {
-		super(inputNodes, outputNodes);
+		super(inputNodes, outputNodes, targetFitness, simTests);
 
 		jf = new JFrame();
 		jf.setTitle("Flappy Bird NEAT");
@@ -68,12 +79,13 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 		pipes = new ArrayList<Rectangle>();
 
 		this.human = human;
+		n = null;
 
 		addPipeSet();
 		addPipeSet();
 
 		if (human) timer.start();
-		else getScholar().testGeneration();
+		else getScholar().learn();
 	}
 
 	private void addPipeSet() {
@@ -138,20 +150,22 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 		if (started) g.drawString("" + score, WIDTH / 2 - 25, 100);
 	}
 
-	public static void main(String[] args) {
-		//FlappyBird  run = new FlappyBird(true);
-		FlappyBird run = new FlappyBird(false);
-	}
-
 	// Non-Game Methods
 	@Override
 	public int calculateFitness(NeuralNetwork n) {
 		this.n = n;
 		this.human = false;
 		started = true;
+		fitness = 0;
+		distance = 0;
+		timer.setDelay(1);
 		timer.start();
+
+		while(!gameOver) continue;
 		
-		return 0;
+		fitness = distance;
+		
+		return fitness;
 	}
 
 	@Override
@@ -244,7 +258,9 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 			for (Rectangle p : pipes) {
 				p.x -= speed;
 
-				if (p.y == 0 && bird.x + bird.width / 2 > p.x + pipeWidth / 2 - speed && bird.x + bird.width / 2 < p.x + pipeWidth / 2 + speed) score++;
+				if (p.y == 0 && bird.x + bird.width / 2 > p.x + pipeWidth / 2 - speed
+						&& bird.x + bird.width / 2 < p.x + pipeWidth / 2 + speed)
+					score++;
 
 				if (p.intersects(bird)) {
 					gameOver = true;
