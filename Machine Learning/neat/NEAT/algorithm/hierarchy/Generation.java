@@ -14,7 +14,7 @@ public class Generation {
 		species = new ArrayList<Species>();
 	}
 
-	private void addPuts(Genome g) {
+	protected void addPuts(Genome g) {
 		for (int i = 0; i < Scholar.obj.inputNodeCount; i++)
 			g.network.addNode(new Node(Node.NODE_TYPE_INPUT, -1));
 		for (int i = 0; i < Scholar.obj.outputNodeCount; i++)
