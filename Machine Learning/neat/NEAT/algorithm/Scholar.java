@@ -13,8 +13,20 @@ public class Scholar {
 	
 	public static final int GENOME_COUNT_IN_POOL = 300;
 	
-	private int nodeIDCounter;
-	private int innovationNumCounter;
+	public static final double PERTURB_WEIGHT_CHANCE = 0.90;
+	public static final double LINK_MUTATE_CHANCE = 2.0;
+	public static final double FORCE_INPUT_BIAS_LINK_MUTATE_CHANCE = 0.40;
+	public static final double NODE_MUTATION_CHANCE = 0.50;
+	public static final double DISABLE_MUTAION_CHANCE = 0.40;
+	public static final double ENABLE_MUTAION_CHANCE = 0.20;
+	
+	public static final double CROSSOVER_CHANCE = 0.75;
+	public static final double STEP_SIZE = 0.10;
+
+
+	
+	private static int nodeIDCounter;
+	private static int innovationNumCounter;
 	
 	public Scholar(Objective obj) {
 		Scholar.obj = obj;
@@ -23,11 +35,11 @@ public class Scholar {
 		innovationNumCounter = 1;
 	}
 
-	public int getNextNodeID() {
+	public static int getNextNodeID() {
 		return nodeIDCounter++;
 	}
 	
-	public int getNextInnovationNum() {
+	public static int getNextInnovationNum() {
 		return innovationNumCounter++;
 	}
 	

@@ -7,21 +7,21 @@ import NEAT.algorithm.neural.Node;
 
 public class Generation {
 
-	public ArrayList<Species> species;
-	private boolean isFirstGen = false;
+	public ArrayList<Species>	species;
+	private boolean				isFirstGen	= false;
 
 	public Generation() {
 		species = new ArrayList<Species>();
 	}
 
-	protected void addPuts(Genome g) {
+	private void addPuts(Genome g) {
 		for (int i = 0; i < Scholar.obj.inputNodeCount; i++)
 			g.network.addNode(new Node(Node.NODE_TYPE_INPUT, -1));
 		for (int i = 0; i < Scholar.obj.outputNodeCount; i++)
 			g.network.addNode(new Node(Node.NODE_TYPE_OUTPUT, -2));
 	}
 
-	protected Genome crossover(Genome g1, Genome g2) {
+	private Genome crossover(Genome g1, Genome g2) {
 		Genome child = new Genome();
 		g1.network.sort();
 		g2.network.sort();
@@ -61,6 +61,23 @@ public class Generation {
 		return child;
 	}
 
+	private ArrayList<Genome> mutateGenomes(ArrayList<Genome> genomes) {
+
+		for (Genome g : genomes)
+			g.mutate();
+
+		return genomes;
+	}
+
+	private Genome mutateGenome(Genome g) {
+		g.mutate();
+		return g;
+	}
+	
+	private void cullAllSpecies() {
+		
+	}
+
 	public void runFitnessTests(ArrayList<Genome> genomes) {
 		if (Scholar.obj.simultainiousTests) {
 			// TODO
@@ -73,33 +90,33 @@ public class Generation {
 
 	public ArrayList<Species> speciateGenomes(ArrayList<Genome> genomes) {
 		ArrayList<Species> species = new ArrayList<Species>();
-		// TODO
+
 		return species;
 	}
 
-	
 	public Generation genNextGen() {
 		Generation nextGen = new Generation();
-		ArrayList<Genome> genomes = new ArrayList<Genome>();		
-		
+		ArrayList<Genome> genomes = new ArrayList<Genome>();
+
 		if (isFirstGen) {
 			for (int i = 0; i < Scholar.GENOME_COUNT_IN_POOL; i++)
 				genomes.add(new Genome());
+			genomes = mutateGenomes(genomes);
 		}
 		else {
-			// TODO Cull old species (Remove x worst genomes in each)
+			cullAllSpecies(); // TODO Cull old species (Remove x worst genomes in each)
 			// TODO Crossover Genomes
-			// TODO Mutate Genomes
+			genomes = mutateGenomes(genomes);
 		}
-		
+
 		runFitnessTests(genomes);
-		nextGen.species = speciateGenomes(genomes);
-		
+		nextGen.species = speciateGenomes(genomes); // TODO sort genomes into species based on a similarity formula within a certain threshold
+
 		return nextGen;
 	}
 
 	public void setFirstGen(boolean isFirstGen) {
 		this.isFirstGen = isFirstGen;
 	}
-	
+
 }
