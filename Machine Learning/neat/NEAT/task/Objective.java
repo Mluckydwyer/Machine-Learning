@@ -1,6 +1,9 @@
 package NEAT.task;
 
+import java.util.ArrayList;
+
 import NEAT.algorithm.Scholar;
+import NEAT.algorithm.hierarchy.Species;
 import NEAT.algorithm.neural.NeuralNetwork;
 
 public abstract class Objective {
@@ -21,6 +24,10 @@ public abstract class Objective {
 	}
 
 	public abstract int calculateFitness(NeuralNetwork n);
+	
+	public ArrayList<Integer> calculateFitness(ArrayList<Species> s) {
+		return null;
+	}
 
 	public abstract Object[] getData();
 	

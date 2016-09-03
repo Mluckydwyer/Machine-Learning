@@ -12,6 +12,7 @@ public class Genome extends Species {
 
 	public NeuralNetwork	network;
 	public int				fitness;
+	public int				globalRank;
 
 	/*
 	 * Randomly updates weight of a selected connection. newWeight = oldWeight +/- Rand(0 to genome$MutationRate[[“Step”]]);? or newWeight = rand(-2 to 2);
@@ -111,7 +112,7 @@ public class Genome extends Species {
 	}
 
 	private void perturbWeightMutate() {
-
+		// TODO
 	}
 
 	private void linkMutate(boolean forceBias) {
@@ -175,5 +176,9 @@ public class Genome extends Species {
 			int toEnable = disabled.get(new Random().nextInt(disabled.size()));
 			network.connections.get(toEnable).setEnabled(true);
 		}
+	}
+	
+	public void setGlobalRank(int rank) {
+		globalRank = rank;
 	}
 }

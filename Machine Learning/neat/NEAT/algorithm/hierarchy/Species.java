@@ -4,16 +4,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import NEAT.algorithm.neural.Node;
-
 public class Species extends Generation{
 
 	public ArrayList<Genome> genomes;
+	public ArrayList<Genome> culledGenomes;
+	
+	public int topFitness;
+	public int averageFitness;
+	public int staleness;
 	
 	public Species() {
 		genomes = new ArrayList<Genome>();
+		genomes = new ArrayList<Genome>();
+		topFitness = 0;
+		averageFitness = 0;
+		staleness = 0;
 	}
-
+	
 	public void sortSpecies() {
 		Collections.sort(genomes, new Comparator<Genome>() {
 
@@ -24,6 +31,20 @@ public class Species extends Generation{
 				else return 0;
 			}
 		});
+	}
+	
+	public void calculateAverageFitness() {
+		int sum = 0;
+		
+		for (Genome g : genomes)
+			sum += g.fitness;
+		
+		averageFitness = sum / genomes.size();
+	}
+	
+	public void cullGenome(int index) {
+		culledGenomes.add(genomes.get(index));
+		genomes.remove(index);
 	}
 	
 }

@@ -16,6 +16,7 @@ import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
+import NEAT.algorithm.hierarchy.Species;
 import NEAT.algorithm.neural.NeuralNetwork;
 import NEAT.task.Objective;
 
@@ -35,9 +36,9 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 
 	private final int				pipeSpacing		= 600;
 	private final int				pipeWidth		= 100;
-	private final int				pipeGap			= 180;
+	private final int				pipeGap			= 135;
 	private final int				speed			= 5;
-	private final int				jumpHeight		= 15;
+	private final int				jumpHeight		= 13;
 
 	private boolean					gameOver		= false;
 	private boolean					started			= false;
@@ -53,7 +54,7 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 	private ArrayList<Rectangle>	pipes;
 
 	public static void main(String[] args) {
-		boolean humanPlayer = false;
+		boolean humanPlayer = true;
 		
 		if (humanPlayer) System.out.println("Flappy Bird Game Starting In Play Mode");
 		else System.out.println("Flappy Bird Game Starting In NEAT Maching Learning Mode");
@@ -287,6 +288,14 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 		}
 
 		repaint(jf.getGraphics());
+	}
+
+	@Override
+	public ArrayList<Integer> calculateFitness(ArrayList<Species> s) {
+		ArrayList<Integer> fitnesses = new ArrayList<Integer>();
+		
+
+		return fitnesses;
 	}
 
 }

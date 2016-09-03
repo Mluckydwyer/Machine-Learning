@@ -12,6 +12,8 @@ public class Scholar {
 	public ArrayList<Generation> generations;
 	
 	public static final int GENOME_COUNT_IN_POOL = 300;
+	public static final int STALE_SPECIES = 15;
+	public static final double REMAING_AFTER_CULL_PERCENT = 0.50;
 	
 	public static final double PERTURB_WEIGHT_CHANCE = 0.90;
 	public static final double LINK_MUTATE_CHANCE = 2.0;
@@ -21,9 +23,10 @@ public class Scholar {
 	public static final double ENABLE_MUTAION_CHANCE = 0.20;
 	
 	public static final double CROSSOVER_CHANCE = 0.75;
-	public static final double STEP_SIZE = 0.10;
-
-
+	
+	public static final double DELTA_THRESHOLD = 1.0;
+	public static final double DELTA_DISJOINT = 2.0;
+	public static final double DELTA_WEIGHTS = 0.4;
 	
 	private static int nodeIDCounter;
 	private static int innovationNumCounter;
