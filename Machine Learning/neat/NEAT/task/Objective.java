@@ -13,6 +13,10 @@ public abstract class Objective {
 	public int		targetFitness;
 	public boolean	simultainiousTests;
 	private Scholar			neat;
+	
+	protected int currentGeneration;
+	protected int currentSpecies;
+	protected int currentGenome;
 
 	public Objective(int inputNodes, int outputNodes, int targetFitness, boolean simTests) {
 		inputNodeCount = inputNodes;
@@ -23,15 +27,15 @@ public abstract class Objective {
 		setupNetwork();
 	}
 
-	public abstract int calculateFitness(NeuralNetwork n);
+	public abstract int calculateFitness(NeuralNetwork n, int cGen, int cSpec, int cGenome);
 	
-	public ArrayList<Integer> calculateFitness(ArrayList<Species> s) {
+	public ArrayList<Species> calculateFitness(ArrayList<Species> s) {
 		return null;
 	}
 
-	public abstract Object[] getData();
+	public abstract double[] getData();
 	
-	public abstract Object[] pushGameData();
+	public abstract void pushGameData();
 
 	private void setupNetwork() {
 		neat = new Scholar(this);

@@ -1,8 +1,6 @@
 package NEAT.algorithm.neural;
 
-import NEAT.algorithm.hierarchy.Genome;
-
-public class Connection extends Genome {
+public class Connection extends NeuralNetwork {
 
 	private int inNode;
 	private int outNode;

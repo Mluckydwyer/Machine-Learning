@@ -1,10 +1,11 @@
 package NEAT.algorithm.neural;
 
-import NEAT.algorithm.hierarchy.Genome;
-import NEAT.task.Objective;
+import java.util.ArrayList;
 
-public class Node extends Genome {
+public class Node extends NeuralNetwork {
 
+	public ArrayList<Connection> incoming;
+	
 	public static final int NODE_TYPE_INPUT = 1;
 	public static final int NODE_TYPE_HIDDEN = 2;
 	public static final int NODE_TYPE_OUTPUT = 3;
@@ -15,18 +16,19 @@ public class Node extends Genome {
 	
 	private double value;
 	
+	public Node(int nodeType) {
+		this(nodeType, getNextNodeID());
+	}
+	
 	public Node(int nodeType, int ID) {
 		this.nodeType = nodeType;
 		this.nodeID = ID;
-		value = 0;
+		incoming = new ArrayList<Connection>();
+		setValue(0);
 	}
 	
 	public static double randomWieght() {
 		return Math.random() * 4 - 2;
-	}
-	
-	private double sigmoid(double num) {
-		return num;
 	}
 	
 	public int getNodeID() {
@@ -35,5 +37,13 @@ public class Node extends Genome {
 	
 	public int getNodeType() {
 		return nodeType;
+	}
+
+	public double getValue() {
+		return value;
+	}
+
+	public void setValue(double value) {
+		this.value = value;
 	}
 }

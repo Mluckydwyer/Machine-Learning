@@ -13,6 +13,7 @@ public class Genome extends Species {
 	public NeuralNetwork	network;
 	public int				fitness;
 	public int				globalRank;
+	public int				genomeNum;
 
 	/*
 	 * Randomly updates weight of a selected connection. newWeight = oldWeight +/- Rand(0 to genome$MutationRate[[“Step”]]);? or newWeight = rand(-2 to 2);
@@ -44,8 +45,10 @@ public class Genome extends Species {
 	 * Disables a random connection
 	 */
 	private double			disableMutatePercent;
+	
+	private double			stepSize;
 
-	public Genome() {
+	public Genome(boolean basicGenome) {
 		network = new NeuralNetwork();
 		perturbWeightMutatePercent = Scholar.PERTURB_WEIGHT_CHANCE;
 		linkMutatePercent = Scholar.LINK_MUTATE_CHANCE;
@@ -53,11 +56,16 @@ public class Genome extends Species {
 		enableMutatePercent = Scholar.ENABLE_MUTAION_CHANCE;
 		disableMutatePercent = Scholar.DISABLE_MUTAION_CHANCE;
 		forceInputBiasLinkMutatePercent = Scholar.FORCE_INPUT_BIAS_LINK_MUTATE_CHANCE;
+		stepSize = Scholar.STEP_SIZE;
+		
+		if (basicGenome) mutate();
 	}
-
+	
+	// TODO Look at order done in
 	public void mutate() {
 		perturbMutationChances();
 
+		// AKA Point Mutate
 		double p = perturbWeightMutatePercent;
 		while (p > 0) {
 			if (Math.random() < p) perturbWeightMutate();
@@ -111,8 +119,14 @@ public class Genome extends Species {
 		else return chance * 1.05263; // 1.05??????
 	}
 
+	// AKA Point Mutate
 	private void perturbWeightMutate() {
-		// TODO
+
+		for (Connection c : network.connections) {
+			if (Math.random() < perturbWeightMutatePercent) c.setWeight(c.getWeight() + Math.random() * stepSize * 2 - stepSize);
+			else c.setWeight(Math.random() * 4 - 2);
+		}
+	
 	}
 
 	private void linkMutate(boolean forceBias) {
@@ -141,7 +155,7 @@ public class Genome extends Species {
 
 	private void nodeMutate() {
 		if (!network.connections.isEmpty()) {
-			Node n = new Node(Node.NODE_TYPE_HIDDEN, Scholar.getNextNodeID());
+			Node n = new Node(Node.NODE_TYPE_HIDDEN);
 			Connection old = network.connections.get(new Random().nextInt(network.connections.size()));
 			Connection new1 = new Connection(old.getInNode(), n.getNodeID(), Scholar.getNextInnovationNum(), 1, true);
 			Connection new2 = new Connection(n.getNodeID(), old.getOutNode(), Scholar.getNextInnovationNum(), old.getWeight(), true);

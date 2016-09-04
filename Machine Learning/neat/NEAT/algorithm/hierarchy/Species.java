@@ -12,6 +12,7 @@ public class Species extends Generation{
 	public int topFitness;
 	public int averageFitness;
 	public int staleness;
+	public int speciesNum;
 	
 	public Species() {
 		genomes = new ArrayList<Genome>();
@@ -45,6 +46,11 @@ public class Species extends Generation{
 	public void cullGenome(int index) {
 		culledGenomes.add(genomes.get(index));
 		genomes.remove(index);
+	}
+	
+	protected void renumberGenomes() {
+		for (int i = 0; i < species.size(); i++)
+			genomes.get(i).genomeNum = i + 1;
 	}
 	
 }

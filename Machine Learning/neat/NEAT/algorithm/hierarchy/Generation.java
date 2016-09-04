@@ -5,7 +5,6 @@ import java.util.Random;
 
 import NEAT.algorithm.Scholar;
 import NEAT.algorithm.neural.Connection;
-import NEAT.algorithm.neural.Node;
 
 public class Generation {
 
@@ -46,19 +45,12 @@ public class Generation {
 		averageFitness = sum;
 	}
 
-	protected void addPuts(Genome g) {
-		for (int i = 0; i < Scholar.obj.inputNodeCount; i++)
-			g.network.addNode(new Node(Node.NODE_TYPE_INPUT, -1));
-		for (int i = 0; i < Scholar.obj.outputNodeCount; i++)
-			g.network.addNode(new Node(Node.NODE_TYPE_OUTPUT, -2));
-	}
-
 	private ArrayList<Genome> breedChildren(ArrayList<Genome> children) {
 		int numToBreed;
 
 		for (Species s : species) {
 			s.calculateAverageFitness();
-			numToBreed = (int) (Math.floor(s.averageFitness / averageFitness * Scholar.GENOME_COUNT_IN_POOL) - 1);
+			numToBreed = (int) (Math.floor(s.averageFitness / averageFitness * Scholar.GENOME_POPULATION) - 1);
 
 			for (int i = 0; i < numToBreed; i++)
 				children.add(breedChild(s));
@@ -84,22 +76,22 @@ public class Generation {
 
 	private ArrayList<Genome> fillChildrenToPop(ArrayList<Genome> children) {
 
-		while (children.size() + species.size() < Scholar.GENOME_COUNT_IN_POOL)
+		while (children.size() + species.size() < Scholar.GENOME_POPULATION)
 			children.add(breedChild(species.get(new Random().nextInt(species.size()))));
 
 		return children;
 	}
 
 	private Genome crossover(Genome g1, Genome g2) {
-		Genome child = new Genome();
+		Genome child = new Genome(false);
 		g1.network.sort();
 		g2.network.sort();
 
 		for (int i = 0; i < g1.network.nodes.size(); i++) {
 			if (!g2.network.hasNode(g1.network.nodes.get(i))) child.network.addNode(g1.network.nodes.get(i));
 			else {
-				if (g1.network.fitness > g2.network.fitness) child.network.addNode(g1.network.nodes.get(i));
-				else if (g1.network.fitness < g2.network.fitness) child.network.addNode(g2.network.getNodeByID(g1.network.nodes.get(i).getNodeID()));
+				if (g1.fitness > g2.fitness) child.network.addNode(g1.network.nodes.get(i));
+				else if (g1.fitness < g2.fitness) child.network.addNode(g2.network.getNodeByID(g1.network.nodes.get(i).getNodeID()));
 				else {
 					if (Math.random() < 0.5) child.network.addNode(g1.network.nodes.get(i));
 					else child.network.addNode(g2.network.getNodeByID(g1.network.nodes.get(i).getNodeID()));
@@ -114,8 +106,8 @@ public class Generation {
 		for (int i = 0; i < g1.network.connections.size(); i++) {
 			if (!g2.network.hasConnection(g1.network.connections.get(i))) child.network.addConnection(g1.network.connections.get(i));
 			else {
-				if (g1.network.fitness > g2.network.fitness) child.network.addConnection(g1.network.connections.get(i));
-				else if (g1.network.fitness < g2.network.fitness) child.network.addConnection(g2.network.getConnectionByInnNum(g1.network.connections.get(i).getInnovationNum()));
+				if (g1.fitness > g2.fitness) child.network.addConnection(g1.network.connections.get(i));
+				else if (g1.fitness < g2.fitness) child.network.addConnection(g2.network.getConnectionByInnNum(g1.network.connections.get(i).getInnovationNum()));
 				else {
 					if (Math.random() < 0.5) child.network.addConnection(g1.network.connections.get(i));
 					else child.network.addConnection(g2.network.getConnectionByInnNum(g1.network.connections.get(i).getInnovationNum()));
@@ -127,18 +119,12 @@ public class Generation {
 		for (int i = 0; i < g2.network.connections.size(); i++)
 			if (!g1.network.hasConnection(g2.network.connections.get(i))) child.network.addConnection(g2.network.connections.get(i));
 
+		child.mutate();
+
 		return child;
 	}
 
-	private ArrayList<Genome> mutateGenomes(ArrayList<Genome> genomes) {
-
-		for (Genome g : genomes)
-			g.mutate();
-
-		return genomes;
-	}
-
-	private void cullSpeciesForNextGen() {
+	private ArrayList<Species> cullSpeciesForNextGen(ArrayList<Species> species) {
 
 		for (Species s : species) {
 			s.sortSpecies();
@@ -149,6 +135,7 @@ public class Generation {
 
 		}
 
+		return species;
 	}
 
 	private void cullAllSpecies() {
@@ -182,21 +169,31 @@ public class Generation {
 	}
 
 	private void removeWeakSpeceies() {
+		double breed;
 		calculateAverageFitness();
 
+		for (int i = species.size() - 1; i > -1; i++) {
+			species.get(i).calculateAverageFitness();
+			breed = Math.floor(species.get(i).averageFitness / averageFitness * Scholar.GENOME_POPULATION);
+
+			if (breed < 1) {
+				weakSpecies.add(species.get(i));
+				species.remove(i);
+			}
+		}
 	}
 
 	public void runFitnessTests(ArrayList<Genome> genomes) {
 		if (Scholar.obj.simultainiousTests) {
-			// TODO
+			species = Scholar.obj.calculateFitness(species);
 		}
 		else {
 			for (Genome genome : genomes)
-				genome.fitness = Scholar.obj.calculateFitness(genome.network);
+				genome.fitness = Scholar.obj.calculateFitness(genome.network, Scholar.generations.size() + 1, genome.speciesNum, genome.genomeNum);
 		}
 	}
 
-	public void speciateGenomes(ArrayList<Genome> genomes) {
+	public ArrayList<Species> speciateGenomes(ArrayList<Species> species, ArrayList<Genome> genomes) {
 
 		for (Genome c : genomes) {
 			boolean foundSpecies = false;
@@ -211,86 +208,93 @@ public class Generation {
 			}
 		}
 
+		return species;
 	}
 
 	private boolean sameSpeceies(Genome genome1, Genome genome2) {
 
 		double dd = Scholar.DELTA_DISJOINT * disjoint(genome1.network.connections, genome2.network.connections); // DeltaDisjoint
 		double dw = Scholar.DELTA_WEIGHTS * weights(genome1.network.connections, genome2.network.connections); // DeltaWeights
-		
+
 		return dd + dw < Scholar.DELTA_THRESHOLD;
 	}
 
 	private double disjoint(ArrayList<Connection> cons1, ArrayList<Connection> cons2) {
+		int numDisjointed = 0;
 
-		//TODO
-		
-		
-		return 0;
+		for (Connection c : cons1)
+			if (containsInovation(c, cons2) == -1) numDisjointed++;
+
+		for (Connection c : cons2)
+			if (containsInovation(c, cons1) == -1) numDisjointed++;
+
+		return numDisjointed / Math.max(cons1.size(), cons2.size());
 	}
-	
+
 	private double weights(ArrayList<Connection> cons1, ArrayList<Connection> cons2) {
 		int numShared = 0;
 		double sum = 0;
-		
+
 		for (int i = 0; i < cons1.size(); i++) {
 			int indexNum = containsInovation(cons1.get(i), cons2);
-			
+
 			if (indexNum != -1) {
 				numShared++;
 				sum += Math.abs(cons1.get(i).getWeight() - cons2.get(indexNum).getWeight());
 			}
 		}
-		
+
 		return sum / numShared;
 	}
 
 	private int containsInovation(Connection c, ArrayList<Connection> cons) {
 		int innovationNum = c.getInnovationNum();
-		
+
 		for (int i = 0; i < cons.size(); i++)
 			if (cons.get(i).getInnovationNum() == innovationNum) return i;
-		
+
 		return -1;
 	}
-	
+
+	private void renumberSpecies() {
+		for (int i = 0; i < species.size(); i++) {
+			species.get(i).speciesNum = i + 1;
+			species.get(i).renumberGenomes();
+		}
+	}
+
 	public Generation genNextGen() {
 		Generation nextGen = new Generation();
 		ArrayList<Genome> children = new ArrayList<Genome>();
 
 		if (isFirstGen) {
-			for (int i = 0; i < Scholar.GENOME_COUNT_IN_POOL; i++)
-				children.add(new Genome());
-			children = mutateGenomes(children);
+			for (int i = 0; i < Scholar.GENOME_POPULATION; i++)
+				children.add(new Genome(true));
 		}
 		else {
 			cullAllSpecies();
 			globalRank();
 
-			removeStaleSpecies(); // TODO Check over
+			removeStaleSpecies();
 			globalRank();
 
-			removeWeakSpeceies(); // TODO Check over
+			removeWeakSpeceies();
 			globalRank();
 
 			calculateAverageFitness();
 
 			children = breedChildren(children); // Check over and test formula for calc. num of children to gen
 
-			cullSpeciesForNextGen(); // Cull all but top member of each species
-
 			children = fillChildrenToPop(children); // while # of species and children are < pop. size; pick random species and breed children form them
 
-			speciateGenomes(children); // TODO add children to species (speciate)
-			// Finish Disjoint Calculation Method
-
-			// Backup/save
-			// genomes = mutateGenomes(genomes); change to when breed or created
+			// TODO Backup/save
 		}
 
 		runFitnessTests(children);
-		nextGen.species = speciateGenomes(children); // TODO sort genomes into species based on a similarity formula within a certain threshold
-
+		nextGen.species = speciateGenomes(cullSpeciesForNextGen(species), children);	// Cull all but top member of each species and then sort the children genomes into species based on a similarity
+																						// formula within a certain threshold
+		nextGen.renumberSpecies();
+		
 		return nextGen;
 	}
 

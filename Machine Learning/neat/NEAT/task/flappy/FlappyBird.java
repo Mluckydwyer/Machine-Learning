@@ -16,6 +16,7 @@ import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
+import NEAT.algorithm.Scholar;
 import NEAT.algorithm.hierarchy.Species;
 import NEAT.algorithm.neural.NeuralNetwork;
 import NEAT.task.Objective;
@@ -126,6 +127,8 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 	}
 
 	public void repaint(Graphics g) {
+		String aiInfo = "";
+		
 		g.setColor(Color.cyan);
 		g.fillRect(0, 0, WIDTH, HEIGHT);
 
@@ -149,12 +152,27 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 		if (!started && human) g.drawString("Click To Start", 75, HEIGHT / 2 - 50);
 		if (gameOver && human) g.drawString("Game Over", 100, HEIGHT / 2 - 50);
 		if (started) g.drawString("" + score, WIDTH / 2 - 25, 100);
+		
+		if (!human) {
+			aiInfo += "Generation: " + currentGeneration;
+			
+			if (!simTests) {
+				aiInfo += "  Species: " + currentSpecies + "  Genome: " + currentGenome;
+			}
+			
+			aiInfo += "\nFitness: " + distance;
+			g.setColor(Color.BLACK);
+			g.drawString(aiInfo, 50, HEIGHT - 50);
+		}
 	}
 
 	// Non-Game Methods
 	@Override
-	public int calculateFitness(NeuralNetwork n) {
+	public int calculateFitness(NeuralNetwork n, int cGen, int cSpec, int cGenome) {
 		this.n = n;
+		this.currentGeneration = cGen;
+		this.currentSpecies = cSpec;
+		this.currentGenome = cGenome;
 		this.human = false;
 		started = true;
 		fitness = 0;
@@ -170,8 +188,8 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 	}
 
 	@Override
-	public Object[] getData() {
-		Object[] data = new Object [inputNodeCount];
+	public double[] getData() {
+		double[] data = new double [inputNodeCount];
 
 		data[0] = bird.y;
 		data[1] = pipes.get(0).getMaxY();
@@ -181,56 +199,21 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 	}
 
 	@Override
-	public Object[] pushGameData() {
-		// TODO Auto-generated method stub
-		return null;
+	public void pushGameData() {
+		double[] outputs = n.evaluate(getData());
+
+		if (outputs[0] < 0.5) jump();	
 	}
 
 	// Listeners
-	@Override
-	public void keyPressed(KeyEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
 	@Override
 	public void keyReleased(KeyEvent e) {
 		if (human && e.getKeyCode() == KeyEvent.VK_SPACE) jump();
 	}
 
 	@Override
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (human) jump();
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -291,11 +274,29 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 	}
 
 	@Override
-	public ArrayList<Integer> calculateFitness(ArrayList<Species> s) {
-		ArrayList<Integer> fitnesses = new ArrayList<Integer>();
+	public ArrayList<Species> calculateFitness(ArrayList<Species> species) {
 		
+		// TODO Simultaneous Fitness tests
 
-		return fitnesses;
+		return species;
 	}
+	
+	@Override
+	public void mouseEntered(MouseEvent e) {}
+
+	@Override
+	public void mouseExited(MouseEvent e) {}
+
+	@Override
+	public void mousePressed(MouseEvent e) {}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {}
+	
+	@Override
+	public void keyTyped(KeyEvent e) {}
+	
+	@Override
+	public void keyPressed(KeyEvent e) {}
 
 }
