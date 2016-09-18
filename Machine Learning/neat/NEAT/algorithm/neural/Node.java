@@ -17,12 +17,13 @@ public class Node extends NeuralNetwork {
 	private double value;
 	
 	public Node(int nodeType) {
-		this(nodeType, getNextNodeID());
+		this(nodeType, -9999);
 	}
 	
 	public Node(int nodeType, int ID) {
 		this.nodeType = nodeType;
 		this.nodeID = ID;
+		if (this.nodeID == -9999) this.nodeID = getNextNodeID();
 		incoming = new ArrayList<Connection>();
 		setValue(0);
 	}
@@ -45,5 +46,10 @@ public class Node extends NeuralNetwork {
 
 	public void setValue(double value) {
 		this.value = value;
+	}
+
+	@Override
+	public String toString() {
+		return "Node [incoming=" + incoming + ", nodeType=" + nodeType + ", nodeID=" + nodeID + ", value=" + value + "]";
 	}
 }

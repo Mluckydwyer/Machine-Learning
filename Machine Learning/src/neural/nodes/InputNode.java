@@ -1,8 +1,6 @@
 package neural.nodes;
 
-import neural.Network;
-
-public class InputNode extends Network {
+public class InputNode {
 
 	private double input;
 

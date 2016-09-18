@@ -1,11 +1,11 @@
 package NEAT.algorithm.neural;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
 import NEAT.algorithm.Scholar;
-import NEAT.algorithm.hierarchy.Genome;
 
 public class NeuralNetwork {
 
@@ -17,16 +17,9 @@ public class NeuralNetwork {
 		nodes = new ArrayList<Node>();
 		connections = new ArrayList<Connection>();
 		nodeIDCounter = 0;
-		addPuts();
-		sort();
 	}
 
-	public NeuralNetwork(Genome g) {
-		this();
-
-	}
-
-	protected static int getNextNodeID() {
+	protected int getNextNodeID() {
 		return nodeIDCounter++;
 	}
 
@@ -72,11 +65,12 @@ public class NeuralNetwork {
 		return -1;
 	}
 
-	private void addPuts() {
+	public void addPuts() {
 		for (int i = 0; i < Scholar.obj.inputNodeCount; i++)
 			addNode(new Node(Node.NODE_TYPE_INPUT, getNextNodeID()));
 		for (int i = 0; i < Scholar.obj.outputNodeCount; i++)
 			addNode(new Node(Node.NODE_TYPE_OUTPUT, getNextNodeID()));
+		sort();
 	}
 
 	public void addNode(Node n) {
@@ -144,6 +138,11 @@ public class NeuralNetwork {
 			if (c.getInnovationNum() == innNum) return c;
 
 		return null;
+	}
+
+	@Override
+	public String toString() {
+		return "NeuralNetwork [Nodes = " + Arrays.toString(nodes.toArray()) + "]\n[Connections = " + Arrays.toString(connections.toArray()) + "]";
 	}
 
 }

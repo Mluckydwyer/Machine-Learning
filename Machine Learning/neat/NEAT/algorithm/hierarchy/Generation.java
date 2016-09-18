@@ -39,10 +39,11 @@ public class Generation {
 		int sum = 0;
 
 		for (Species s : species) {
+			s.calculateAverageFitness();
 			sum += s.averageFitness;
 		}
 
-		averageFitness = sum;
+		averageFitness = (sum / species.size());
 	}
 
 	private ArrayList<Genome> breedChildren(ArrayList<Genome> children) {
@@ -172,7 +173,7 @@ public class Generation {
 		double breed;
 		calculateAverageFitness();
 
-		for (int i = species.size() - 1; i > -1; i++) {
+		for (int i = species.size() - 1; i > -1; i--) {
 			species.get(i).calculateAverageFitness();
 			breed = Math.floor(species.get(i).averageFitness / averageFitness * Scholar.GENOME_POPULATION);
 
@@ -188,8 +189,10 @@ public class Generation {
 			species = Scholar.obj.calculateFitness(species);
 		}
 		else {
-			for (Genome genome : genomes)
-				genome.fitness = Scholar.obj.calculateFitness(genome.network, Scholar.generations.size() + 1, genome.speciesNum, genome.genomeNum);
+			for (Genome genome : genomes) {
+				genome.fitness = Scholar.obj.calculateFitness(genome.network, Scholar.generations.size() + 1, -1, genome.genomeNum);
+				System.out.println("Tested Genome");
+			}
 		}
 	}
 
@@ -262,39 +265,57 @@ public class Generation {
 			species.get(i).renumberGenomes();
 		}
 	}
+	
+	private void numberChildren(ArrayList<Genome> children) {
+		for (int i = 0; i < children.size(); i++)
+			children.get(i).genomeNum = i + 1;
+	}
 
 	public Generation genNextGen() {
 		Generation nextGen = new Generation();
 		ArrayList<Genome> children = new ArrayList<Genome>();
 
+		System.out.println("Generating New Species");
+		
 		if (isFirstGen) {
 			for (int i = 0; i < Scholar.GENOME_POPULATION; i++)
 				children.add(new Genome(true));
+			System.out.println("Generated First Gen Children");
 		}
 		else {
+			System.out.println("Culling Species");
 			cullAllSpecies();
 			globalRank();
 
+			System.out.println("Removing Stale Species");
 			removeStaleSpecies();
 			globalRank();
 
+			System.out.println("Removing Weak Species");
 			removeWeakSpeceies();
 			globalRank();
 
 			calculateAverageFitness();
 
+			System.out.println("Breeding Children");
 			children = breedChildren(children); // Check over and test formula for calc. num of children to gen
 
+			System.out.println("Filling Childs To Population Size");
 			children = fillChildrenToPop(children); // while # of species and children are < pop. size; pick random species and breed children form them
 
 			// TODO Backup/save
 		}
 
+		System.out.println("Numbering Children and Running Fitness Tests");
+		numberChildren(children);
 		runFitnessTests(children);
+		
+		System.out.println("Speciating Children");
 		nextGen.species = speciateGenomes(cullSpeciesForNextGen(species), children);	// Cull all but top member of each species and then sort the children genomes into species based on a similarity
 																						// formula within a certain threshold
 		nextGen.renumberSpecies();
 		
+		System.out.println("Generation Generation Finished");
 		return nextGen;
 	}
 

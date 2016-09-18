@@ -45,8 +45,12 @@ public class Scholar {
 		Generation firstGen = new Generation();
 		firstGen.setFirstGen(true);
 		generations.add(firstGen.genNextGen());
+		
+		while(generations.get(generations.size() - 1).maxFitness < obj.targetFitness) {
+			evolve();
+		}
 	}
-
+	
 	public void evolve() {
 		generations.add(generations.get(generations.size() - 1).genNextGen());
 	}

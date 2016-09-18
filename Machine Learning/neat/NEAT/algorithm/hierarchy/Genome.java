@@ -8,7 +8,7 @@ import NEAT.algorithm.neural.Connection;
 import NEAT.algorithm.neural.NeuralNetwork;
 import NEAT.algorithm.neural.Node;
 
-public class Genome extends Species {
+public class Genome {
 
 	public NeuralNetwork	network;
 	public int				fitness;
@@ -50,6 +50,7 @@ public class Genome extends Species {
 
 	public Genome(boolean basicGenome) {
 		network = new NeuralNetwork();
+		network.addPuts();
 		perturbWeightMutatePercent = Scholar.PERTURB_WEIGHT_CHANCE;
 		linkMutatePercent = Scholar.LINK_MUTATE_CHANCE;
 		nodeMutatePercent = Scholar.NODE_MUTATION_CHANCE;
@@ -61,7 +62,6 @@ public class Genome extends Species {
 		if (basicGenome) mutate();
 	}
 	
-	// TODO Look at order done in
 	public void mutate() {
 		perturbMutationChances();
 
@@ -147,7 +147,7 @@ public class Genome extends Species {
 		possNodes.clear();
 
 		for (int i = 0; i < network.nodes.size(); i++)
-			if (network.nodes.get(i).getNodeType() != Node.NODE_TYPE_BIAS) possNodes.add(i);
+			if (network.nodes.get(i).getNodeType() != Node.NODE_TYPE_BIAS && network.nodes.get(i).getNodeType() != Node.NODE_TYPE_INPUT) possNodes.add(i); // TODO MAYBE?
 		int outNode = possNodes.get(new Random().nextInt(possNodes.size()));
 
 		network.connections.add(new Connection(inNode, outNode, Scholar.getNextInnovationNum(), Node.randomWieght(), true));

@@ -16,7 +16,6 @@ import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
-import NEAT.algorithm.Scholar;
 import NEAT.algorithm.hierarchy.Species;
 import NEAT.algorithm.neural.NeuralNetwork;
 import NEAT.task.Objective;
@@ -26,9 +25,10 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 	private static int				inputNodes		= 3;
 	private static int				outputNodes		= 1;
 	private int						fitness			= 0;
-	private static int				targetFitness	= 20000;
+	private static int				targetFitness	= 200000;
 	private int						distance		= 0;
 	private boolean					human			= true;
+	private boolean					fastSpeed		= true;
 	private static boolean			simTests		= false;
 	private NeuralNetwork			n;
 
@@ -55,12 +55,13 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 	private ArrayList<Rectangle>	pipes;
 
 	public static void main(String[] args) {
-		boolean humanPlayer = true;
+		// SET THIS TO TRUE TO RUN THE NEAT LEARNING ENGINE
+		boolean RUN_NEAT_LEARNER = true;
 		
-		if (humanPlayer) System.out.println("Flappy Bird Game Starting In Play Mode");
+		if (!RUN_NEAT_LEARNER) System.out.println("Flappy Bird Game Starting In Play Mode");
 		else System.out.println("Flappy Bird Game Starting In NEAT Maching Learning Mode");
 		
-		FlappyBird run = new FlappyBird(humanPlayer);
+		FlappyBird run = new FlappyBird(!RUN_NEAT_LEARNER);
 	}
 	
 	public FlappyBird(boolean human) {
@@ -76,7 +77,7 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 		jf.setVisible(true);
 
 		timer = new Timer(20, this);
-
+		
 		bird = new Rectangle(WIDTH / 2 - 10, HEIGHT / 2 - 10, 20, 20);
 		pipes = new ArrayList<Rectangle>();
 
@@ -157,12 +158,13 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 			aiInfo += "Generation: " + currentGeneration;
 			
 			if (!simTests) {
-				aiInfo += "  Species: " + currentSpecies + "  Genome: " + currentGenome;
+				aiInfo += "   Genome: " + currentGenome;
 			}
 			
-			aiInfo += "\nFitness: " + distance;
+			aiInfo += "            Fitness: " + distance;
 			g.setColor(Color.BLACK);
-			g.drawString(aiInfo, 50, HEIGHT - 50);
+			g.setFont(new Font("Arial", 1, 20));
+			g.drawString(aiInfo, 20, HEIGHT - 20);
 		}
 	}
 
@@ -174,15 +176,30 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 		this.currentSpecies = cSpec;
 		this.currentGenome = cGenome;
 		this.human = false;
+		reset();
 		started = true;
 		fitness = 0;
 		distance = 0;
-		timer.setDelay(1);
+		System.out.println("Testing fitness for Generation: " + currentGeneration +  "\tGenome: " + currentGenome);
+		System.out.println(n.toString());
+		
+		if (fastSpeed) timer.setDelay(1);
 		timer.start();
-
-		while(!gameOver) continue;
+		
+		while(!gameOver) {
+			try {
+				Thread.sleep(1);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			continue;
+		}
 		
 		fitness = distance;
+		
+		System.out.println("Fitness: " + fitness);
 		
 		return fitness;
 	}
@@ -202,7 +219,8 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 	public void pushGameData() {
 		double[] outputs = n.evaluate(getData());
 
-		if (outputs[0] < 0.5) jump();	
+		if (outputs[0] > 0) jump();
+		System.out.println(outputs[0]);
 	}
 
 	// Listeners
@@ -267,9 +285,11 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 				gameOver = true;
 			}
 
-			if (gameOver) timer.stop();
+			if (gameOver) {
+				timer.stop();
+			}
 		}
-
+		
 		repaint(jf.getGraphics());
 	}
 

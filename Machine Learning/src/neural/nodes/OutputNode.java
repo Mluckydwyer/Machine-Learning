@@ -1,17 +1,17 @@
 package neural.nodes;
 
 import neural.Network;
-import neural.NuralNetwork;
+import neural.NeuralNetwork;
 
-public class OutputNode extends Network {
+public class OutputNode {
 
-	private double[]	weights;
-	private double[]	inputs;
+	public double[]	weights;
+	public double[]	inputs;
 	private double		biasWeight;
 	private double		value;
 
 	public OutputNode() {
-		weights = new double [NuralNetwork.hiddenNodes];
+		weights = new double [NeuralNetwork.hiddenNodes];
 		randomizeWeights();
 		setValue(0);
 	}
@@ -27,7 +27,7 @@ public class OutputNode extends Network {
 	}
 
 	private void getData() {
-		this.inputs = getHiddenInputs();
+		this.inputs = Network.getHiddenInputs();
 	}
 
 	public void value() {
@@ -45,7 +45,7 @@ public class OutputNode extends Network {
 		for (double v : calculatedValues)
 			total += v;
 
-		total += getBias() * biasWeight;
+		total += Network.getBias() * biasWeight;
 
 		return sigmoid(total);
 	}
@@ -61,10 +61,6 @@ public class OutputNode extends Network {
 
 	public void setValue(double value) {
 		this.value = value;
-	}
-
-	public void backpropigation(double[] error) {
-		// TODO TODO TODO IDK
 	}
 
 	private double sigmoid(double v) {

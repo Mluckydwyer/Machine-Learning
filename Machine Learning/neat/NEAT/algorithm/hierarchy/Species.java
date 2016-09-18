@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-public class Species extends Generation{
+public class Species {
 
 	public ArrayList<Genome> genomes;
 	public ArrayList<Genome> culledGenomes;
@@ -49,7 +49,7 @@ public class Species extends Generation{
 	}
 	
 	protected void renumberGenomes() {
-		for (int i = 0; i < species.size(); i++)
+		for (int i = 0; i < genomes.size(); i++)
 			genomes.get(i).genomeNum = i + 1;
 	}
 	

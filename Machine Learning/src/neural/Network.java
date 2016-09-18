@@ -1,5 +1,6 @@
 package neural;
 
+import neural.NeuralNetwork;
 import neural.nodes.HiddenNode;
 import neural.nodes.InputNode;
 import neural.nodes.OutputNode;
@@ -10,23 +11,20 @@ public class Network implements Runnable {
 	private static HiddenNode[]	hiddenNodes;
 	private static OutputNode[]	outputNodes;
 
-	private double				bias		= 1;
+	private static double				bias			= 1;
 
 	private double[][]			inputs;
 	private double[][]			desiredOutputs;
 
 	private int					dataSet;
-	private final int			runTimes	= 60000;	// 60,000; -1 for
-														// infinite until target
-														// error is reached TODO
-	private final double		targetError	= .0005;
-	private long				runCount	= 0;
-	private double				lastError	= 0;
+
+	private long				runCount		= 0;
+	private double				lastTotalError	= 0;
 
 	public Network() {
-		inputNodes = new InputNode [NuralNetwork.inputNodes];
-		hiddenNodes = new HiddenNode [NuralNetwork.hiddenNodes];
-		outputNodes = new OutputNode [NuralNetwork.outputNodes];
+		inputNodes = new InputNode [NeuralNetwork.inputNodes];
+		hiddenNodes = new HiddenNode [NeuralNetwork.hiddenNodes];
+		outputNodes = new OutputNode [NeuralNetwork.outputNodes];
 
 		fillNodeArrays();
 		dataSet = 0;
@@ -36,56 +34,109 @@ public class Network implements Runnable {
 		this.inputs = inputs;
 		this.desiredOutputs = desiredOutputs;
 
-		/*for (int i = 0; i < inputs.length; i++) {
-			setInputs();
-
-			for (int j = 0; j < runTimes; j++)
-				runSet();
+		for (int i = 0; i < inputs.length; i++) {
+			setInputs(inputs[i]);
+			runTrainingSet();
 
 			dataSet++;
-		}*/
-		
-		for (runCount = 0; runCount < runTimes || targetError < lastError; runCount++) {
-			setInputs();
-			runSet();
-			
-			dataSet++;
-			
-			if (dataSet == inputs.length) dataSet = 0;
+			System.out.println("Data Set: " + dataSet + " Reached Error: " + lastTotalError + " in " + runCount + " runs!");
+
+			runCount = 0;
 		}
 	}
 
-	private void runSet() {
-		lastError = findError();
-		backpropigation(lastError);
+	private void runTrainingSet() {
+		do {
+			lastTotalError = propagate();
+			System.out.println("Last Total Error For Data Set #" + dataSet + ": " + lastTotalError);
+			backpropagate(lastTotalError);
+			runCount++;
+		} while (lastTotalError >= NeuralNetwork.DESIRED_ERROR);		
 	}
 
-	public void backpropigation(double error) {
-		for (int i = 0; i < hiddenNodes.length; i++)
-			hiddenNodes[i].backpropigation(error);
+	public void backpropagate(double error) {
+		double[][] newOutputWeights = new double [outputNodes.length] [outputNodes[0].weights.length];
+		double[][] newHiddenWeights = new double [hiddenNodes.length] [hiddenNodes[0].weights.length];
+
+		// Output Nodes
+		for (int i = 0; i < outputNodes.length; i++) {
+
+			OutputNode node = outputNodes[i];
+
+			for (int j = 0; j < node.weights.length; j++) {
+
+				double deltaOfNode = -1 * (desiredOutputs[dataSet][i] - node.getValue()) * node.getValue() * (-1 * node.getValue()) * node.inputs[j];
+				newOutputWeights[i][j] = node.weights[j] - NeuralNetwork.LEARNING_RATE * deltaOfNode;
+
+			}
+		}
+
+		// InputNodes
+		for (int i = 0; i < hiddenNodes.length; i++) {
+
+			HiddenNode node = hiddenNodes[i];
+
+			for (int j = 0; j < node.weights.length; j++) {
+
+				double deltaOfHiddenNode = 0;
+
+				for (int x = 0; x < NeuralNetwork.outputNodes; x++) {
+					deltaOfHiddenNode += (-1 * (desiredOutputs[dataSet][x] - outputNodes[x].getValue())) * (outputNodes[x].getValue() * (1 - outputNodes[x].getValue())) * node.inputs[j];
+				}
+
+				double partDirOfTotErOverPartDirOfWeight = deltaOfHiddenNode * (node.getValue() * (1 - node.getValue())) * node.inputs[j];
+				newHiddenWeights[i][j] = node.weights[j] - NeuralNetwork.LEARNING_RATE * partDirOfTotErOverPartDirOfWeight;
+			}
+
+		}
+
+		for (int i = 0; i < newOutputWeights.length; i++)
+			for (int j = 0; j < newOutputWeights[0].length; j++)
+				outputNodes[i].weights[j] = newOutputWeights[i][j];
+		
+		for (int i = 0; i < newHiddenWeights.length; i++)
+			for (int j = 0; j < newHiddenWeights[0].length; j++)
+				hiddenNodes[i].weights[j] = newHiddenWeights[i][j];
+		
+		/*
+		 * // Code (update all at once at the end
+		 * 
+		 * // output nodes first
+		 * deltaOfNode = -1 * (targetOutput - actualOutput) * actualOutput * (1 - actualOutput) * outputOfInputNode;
+		 * 
+		 * newWeight = oldWeight - learningRate * deltaOfNode;
+		 * 
+		 * // hidden nodes
+		 * deltaOfNodeOutputGoesTo1 = (-1 * (targetOutput - actualOutput)) * (actualOutput * (1 - actualOutput)) * weightToOutputNode;
+		 * deltaOfHiddenNode = deltaOfNodeOutputGoesTo1 + deltaOfNodeOutputGoesTo2 + ""3 ect;
+		 * 
+		 * partDirOfTotErOverPartDirOfWeight = deltaOFHiddenNode * (outputOfHiddenNode * (1 - outputOfHiddenNode)) * (inputFromPreviousNode);
+		 * 
+		 * newWeight = oldWeight - learningRate * partDirOfTotErOberPartDirOfWeight;
+		 */
 	}
 
 	private void fillNodeArrays() {
 		// Inputs
-		for (InputNode in : inputNodes)
-			in = new InputNode();
+		for (int i = 0; i < inputNodes.length; i++)
+			inputNodes[i] = new InputNode();
 
 		// Hidden
-		for (HiddenNode hid : hiddenNodes)
-			hid = new HiddenNode();
+		for (int i = 0; i < hiddenNodes.length; i++)
+			hiddenNodes[i] = new HiddenNode();
 
 		// Outputs
-		for (OutputNode out : outputNodes)
-			out = new OutputNode();
+		for (int i = 0; i < outputNodes.length; i++)
+			outputNodes[i] = new OutputNode();
 	}
 
-	private void setInputs() {
-		for (int i = 0; i < inputs.length; i++)
-			inputNodes[i].setInput(inputs[dataSet][i]);
+	private void setInputs(double[] puts) {
+		for (int i = 0; i < puts.length; i++)
+			Network.inputNodes[i].setInput(puts[i]);
 	}
 
-	public double[] getInputValues() {
-		double[] inputs = new double [NuralNetwork.inputNodes];
+	public static double[] getInputValues() {
+		double[] inputs = new double [NeuralNetwork.inputNodes];
 
 		for (int i = 0; i < inputNodes.length; i++)
 			inputs[i] = inputNodes[i].getInput();
@@ -93,8 +144,8 @@ public class Network implements Runnable {
 		return inputs;
 	}
 
-	public double[] getHiddenInputs() {
-		double[] inputs = new double [NuralNetwork.hiddenNodes];
+	public static double[] getHiddenInputs() {
+		double[] inputs = new double [NeuralNetwork.hiddenNodes];
 
 		for (int i = 0; i < hiddenNodes.length; i++) {
 			hiddenNodes[i].calcValue();
@@ -110,7 +161,7 @@ public class Network implements Runnable {
 	}
 
 	private double[] getOutputs() {
-		double[] outputs = new double [NuralNetwork.outputNodes];
+		double[] outputs = new double [NeuralNetwork.outputNodes];
 
 		for (int i = 0; i < outputNodes.length; i++) {
 			outputNodes[i].calcValue();
@@ -120,7 +171,7 @@ public class Network implements Runnable {
 		return outputs;
 	}
 
-	private double findError() {
+	private double propagate() {
 		double[] outputs = getOutputs();
 		double[] error = new double [outputs.length];
 		double totalError = 0;
@@ -138,7 +189,7 @@ public class Network implements Runnable {
 		return totalError;
 	}
 
-	public double getBias() {
+	public static double getBias() {
 		return bias;
 	}
 

@@ -45,4 +45,9 @@ public class Connection extends NeuralNetwork {
 	public int getOutNode() {
 		return outNode;
 	}
+
+	@Override
+	public String toString() {
+		return "Connection [inNode=" + inNode + ", outNode=" + outNode + ", innovationNum=" + innovationNum + ", weight=" + weight + ", isEnabled=" + isEnabled + "]";
+	}
 }
