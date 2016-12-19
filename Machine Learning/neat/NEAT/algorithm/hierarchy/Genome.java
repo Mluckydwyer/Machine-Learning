@@ -50,7 +50,6 @@ public class Genome {
 
 	public Genome(boolean basicGenome) {
 		network = new NeuralNetwork();
-		network.addPuts();
 		perturbWeightMutatePercent = Scholar.PERTURB_WEIGHT_CHANCE;
 		linkMutatePercent = Scholar.LINK_MUTATE_CHANCE;
 		nodeMutatePercent = Scholar.NODE_MUTATION_CHANCE;
@@ -59,7 +58,10 @@ public class Genome {
 		forceInputBiasLinkMutatePercent = Scholar.FORCE_INPUT_BIAS_LINK_MUTATE_CHANCE;
 		stepSize = Scholar.STEP_SIZE;
 		
-		if (basicGenome) mutate();
+		if (basicGenome) {
+			network.addPuts();
+			mutate();
+		}
 	}
 	
 	public void mutate() {
@@ -155,7 +157,7 @@ public class Genome {
 
 	private void nodeMutate() {
 		if (!network.connections.isEmpty()) {
-			Node n = new Node(Node.NODE_TYPE_HIDDEN);
+			Node n = new Node(Node.NODE_TYPE_HIDDEN, network.getNextNodeID());
 			Connection old = network.connections.get(new Random().nextInt(network.connections.size()));
 			Connection new1 = new Connection(old.getInNode(), n.getNodeID(), Scholar.getNextInnovationNum(), 1, true);
 			Connection new2 = new Connection(n.getNodeID(), old.getOutNode(), Scholar.getNextInnovationNum(), old.getWeight(), true);
@@ -195,4 +197,13 @@ public class Genome {
 	public void setGlobalRank(int rank) {
 		globalRank = rank;
 	}
+
+	public void resetNodes() {
+		for (int i = 0; i < network.nodes.size(); i ++) {
+			Node n = network.nodes.get(i);
+			n.incoming.clear();
+			n.setValue(0);
+		}
+	}
+	
 }

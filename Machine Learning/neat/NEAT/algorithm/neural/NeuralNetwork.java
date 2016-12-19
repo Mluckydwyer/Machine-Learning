@@ -11,16 +11,17 @@ public class NeuralNetwork {
 
 	public ArrayList<Node>			nodes;
 	public ArrayList<Connection>	connections;
-	private static int						nodeIDCounter;
+	private int						nodeIDCounter;
 
 	public NeuralNetwork() {
 		nodes = new ArrayList<Node>();
 		connections = new ArrayList<Connection>();
-		nodeIDCounter = 0;
+		nodeIDCounter = -1;
 	}
 
-	protected int getNextNodeID() {
-		return nodeIDCounter++;
+	public int getNextNodeID() {
+		nodeIDCounter += 1;
+		return nodeIDCounter;
 	}
 
 	public double[] evaluate(double[] inputs) {
@@ -41,7 +42,7 @@ public class NeuralNetwork {
 				Connection incoming = n.incoming.get(i);
 				Node other = getNodeByID(incoming.getInNode());
 
-				sum += incoming.getWeight() * other.getValue();
+					sum += incoming.getWeight() * other.getValue();
 			}
 
 			if (n.incoming.size() > 0) n.setValue(sigmoid(sum));
@@ -80,6 +81,7 @@ public class NeuralNetwork {
 
 	public void addConnection(Connection c) {
 		connections.add(c);
+		getNodeByID(c.getOutNode()).incoming.add(c);
 		sortConnections();
 	}
 
@@ -114,7 +116,9 @@ public class NeuralNetwork {
 
 	public boolean hasNode(Node n) {
 		for (Node node : nodes)
-			if (node.getNodeID() == n.getNodeID()) return true;
+			if (node.getNodeID() == n.getNodeID()) {
+				return true;
+			}
 
 		return false;
 	}
@@ -131,6 +135,7 @@ public class NeuralNetwork {
 			if (n.getNodeID() == ID) return n;
 
 		return null;
+		// throw new NullPointerException(nodes + "\n" + ID);
 	}
 
 	public Connection getConnectionByInnNum(int innNum) {

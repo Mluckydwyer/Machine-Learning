@@ -2,7 +2,7 @@ package NEAT.algorithm.neural;
 
 import java.util.ArrayList;
 
-public class Node extends NeuralNetwork {
+public class Node {
 
 	public ArrayList<Connection> incoming;
 	
@@ -16,14 +16,9 @@ public class Node extends NeuralNetwork {
 	
 	private double value;
 	
-	public Node(int nodeType) {
-		this(nodeType, -9999);
-	}
-	
 	public Node(int nodeType, int ID) {
 		this.nodeType = nodeType;
 		this.nodeID = ID;
-		if (this.nodeID == -9999) this.nodeID = getNextNodeID();
 		incoming = new ArrayList<Connection>();
 		setValue(0);
 	}

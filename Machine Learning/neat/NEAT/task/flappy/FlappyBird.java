@@ -62,6 +62,7 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 		else System.out.println("Flappy Bird Game Starting In NEAT Maching Learning Mode");
 		
 		FlappyBird run = new FlappyBird(!RUN_NEAT_LEARNER);
+		run.start();
 	}
 	
 	public FlappyBird(boolean human) {
@@ -86,11 +87,13 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 
 		addPipeSet();
 		addPipeSet();
+	}
 
+	public void start () {
 		if (human) timer.start();
 		else getScholar().learn();
 	}
-
+	
 	private void addPipeSet() {
 		Random r = new Random();
 		int height1 = 150 + r.nextInt(HEIGHT - pipeGap - 300);

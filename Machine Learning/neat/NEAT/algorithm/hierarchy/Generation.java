@@ -5,6 +5,7 @@ import java.util.Random;
 
 import NEAT.algorithm.Scholar;
 import NEAT.algorithm.neural.Connection;
+import NEAT.algorithm.neural.Node;
 
 public class Generation {
 
@@ -83,12 +84,43 @@ public class Generation {
 		return children;
 	}
 
+	// HAS BUG THAT CAUSES DOUBLE ADDING OF NODES CAUSING TWO WITH THE SAME CONNECTION TODO TODO TODO TODO
+	
 	private Genome crossover(Genome g1, Genome g2) {
 		Genome child = new Genome(false);
 		g1.network.sort();
 		g2.network.sort();
 
+		
+		if (g1.fitness < g2.fitness) {
+			Genome temp = g1;
+			g1 = g2;
+			g2 = temp;
+		}
+		
 		for (int i = 0; i < g1.network.nodes.size(); i++) {
+			Node n1 = g1.network.nodes.get(i);
+			Node n2 = g2.network.getNodeByID(n1.getNodeID());
+			
+			if (!n2.equals(null) && Math.random() < 0.5)
+				child.network.addNode(n2);
+			else
+				child.network.addNode(n1);
+		}
+		
+		child.resetNodes();
+		
+		for (int i = 0; i < g1.network.connections.size(); i++) {
+			Connection c1 = g1.network.connections.get(i);
+			Connection c2 = g2.network.getConnectionByInnNum(c1.getInnovationNum());
+			
+			if (!c2.equals(null) && Math.random() < 0.5)
+				child.network.addConnection(c2);
+			else
+				child.network.addConnection(c1);
+		}
+		
+/*		for (int i = 0; i < g1.network.nodes.size(); i++) {
 			if (!g2.network.hasNode(g1.network.nodes.get(i))) child.network.addNode(g1.network.nodes.get(i));
 			else {
 				if (g1.fitness > g2.fitness) child.network.addNode(g1.network.nodes.get(i));
@@ -119,7 +151,7 @@ public class Generation {
 
 		for (int i = 0; i < g2.network.connections.size(); i++)
 			if (!g1.network.hasConnection(g2.network.connections.get(i))) child.network.addConnection(g2.network.connections.get(i));
-
+*/
 		child.mutate();
 
 		return child;
