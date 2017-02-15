@@ -44,13 +44,14 @@ public class Network implements Runnable {
 				System.out.println("Epoch: " + epoch + " Reached Error: " + lastTotalError);
 				epoch++;
 			}
-		}
-		else {
+		} else {
 			do {
 				runTrainingSet();
-				System.out.println("Epoch: " + epoch + " Reached Error: " + lastTotalError);
+				if (epoch % 100000 == 0) System.out.println("Epoch: " + epoch + " Reached Error: " + lastTotalError);
 				epoch++;
 			} while (lastTotalError > NeuralNetwork.DESIRED_ERROR);
+			
+			System.out.println("Epoch: " + epoch + " Reached Error: " + lastTotalError);
 		}
 
 		System.out.println("\nPlease enter some input data\n------------------------------------\n");
@@ -58,32 +59,49 @@ public class Network implements Runnable {
 
 		while (true) {
 			double[] testIn = new double[inputs[0].length];
-
-			for (int i = 0; i < testIn.length; i++)
+			
+			for (int i = 0; i < testIn.length; i++) 
 				testIn[i] = s.nextDouble();
-
-			System.out.println(output(testIn) + "\n");
-		}
+			
+			System.out.println(output(testIn) + "\n");			
+			}
 	}
 
 	private void runTrainingSet() {
 		lastTotalError = 0;
 
-		for (int j = 0; j < inputs.length; j++) {
+		/*for (int j = 0; j < inputs.length; j++) {
 			setInputs(inputs[j]);
 			double out = propagate();
+
+			System.out.println(out);
 			
-			if (lastTotalError < out) lastTotalError = out;
-			//lastTotalError += out;
+			if (lastTotalError < out)
+				lastTotalError = out;
+			// lastTotalError += out;
 			// System.out.println("Last Total Error For Epoch: " + epoch + "
 			// Data Set #" + dataSet + ": " + lastTotalError);
-			backpropagate(lastTotalError);
+			backpropagate();*/
+		
+		
+			for (int j = 0; j < inputs.length; j++) {
+				setInputs(inputs[j]);
+				dataSet = j;
+				double out;
+				
+				//do {
+					out = propagate();
+					
+					if (lastTotalError < out)
+						lastTotalError = out;
+					backpropagate();
+				//} while(out > NeuralNetwork.DESIRED_ERROR);
+			}
 		}
 
-		//lastTotalError /= inputs.length;
-	}
+	//}
 
-	public void backpropagate(double error) {
+	public void backpropagate() {
 		double[][] newOutputWeights = new double[outputNodes.length][outputNodes[0].weights.length];
 		double[][] newHiddenWeights = new double[hiddenNodes.length][hiddenNodes[0].weights.length];
 
@@ -92,17 +110,30 @@ public class Network implements Runnable {
 		for (int i = 0; i < newOutputWeights.length; i++)
 			for (int j = 0; j < newOutputWeights[i].length; j++) {
 				double w = 0;
-				w = -1 * NeuralNetwork.LEARNING_RATE * hiddenNodes[j].getValue()
-						* (outputNodes[i].getValue() - desiredOutputs[dataSet][i]) * outputNodes[i].getValue()
-						* (1 - outputNodes[i].getValue());
+				//w = -1 * NeuralNetwork.LEARNING_RATE * hiddenNodes[j].getValue()
+				//		* (outputNodes[i].getValue() - desiredOutputs[dataSet][i]) * outputNodes[i].getValue()
+				//		* (1 - outputNodes[i].getValue());
+				
+				w = NeuralNetwork.LEARNING_RATE * (-(desiredOutputs[dataSet][i] - outputNodes[i].getValue()) * (outputNodes[i].getValue() * (1 - outputNodes[i].getValue()) * hiddenNodes[j].getValue()));
+				
+				
+				
+				
 				newOutputWeights[i][j] = w;
 			}
 
 		// Hidden
 
-		for (int i = 0; i < newHiddenWeights.length; i++)
+		for (int i = 0; i < newHiddenWeights.length; i++) {
+			double sumation = 0;
+
+			for (int x = 0; x < outputNodes.length; x++)
+				sumation += -(desiredOutputs[dataSet][i] - outputNodes[i].getValue()) * (outputNodes[i].getValue() * outputNodes[x].weights[i]);
+			
+				sumation *= hiddenNodes[i].getValue() * (1 - hiddenNodes[i].getValue());
+				
 			for (int j = 0; j < newHiddenWeights[i].length; j++) {
-				double w = 0;
+				/*double w = 0;
 
 				double sumation = 0;
 
@@ -113,17 +144,21 @@ public class Network implements Runnable {
 
 				w = -1 * NeuralNetwork.LEARNING_RATE * inputNodes[j].getInput() * sumation * hiddenNodes[i].getValue()
 						* (1 - hiddenNodes[i].getValue());
-
+				*/
+				
+				double w = NeuralNetwork.LEARNING_RATE * sumation * inputNodes[j].getInput();
+				
 				newHiddenWeights[i][j] = w;
 			}
+		}
 
 		for (int i = 0; i < newOutputWeights.length; i++)
 			for (int j = 0; j < newOutputWeights[0].length; j++)
-				outputNodes[i].weights[j] += newOutputWeights[i][j];
+				outputNodes[i].weights[j] -= newOutputWeights[i][j];
 
 		for (int i = 0; i < newHiddenWeights.length; i++)
 			for (int j = 0; j < newHiddenWeights[0].length; j++)
-				hiddenNodes[i].weights[j] += newHiddenWeights[i][j];
+				hiddenNodes[i].weights[j] -= newHiddenWeights[i][j];
 
 		/*
 		 * Old // Output Nodes for (int i = 0; i < outputNodes.length; i++) {
@@ -263,10 +298,12 @@ public class Network implements Runnable {
 		double totalError = 0;
 
 		for (int i = 0; i < outputs.length; i++) {
-			error[i] = Math.abs(outputs[i] - desiredOutputs[dataSet][i]);
-			//error[i] = (.5 * Math.pow(desiredOutputs[dataSet][i] - outputs[i], 2)); // Squared
+			// error[i] = Math.abs(outputs[i] - desiredOutputs[dataSet][i]);
+			error[i] = (.5 * Math.pow((desiredOutputs[dataSet][i] - outputs[i]), 2)); // Squared
 																					// Error
 																					// Function
+			
+			//System.out.println(Arrays.toString(outputs) + Arrays.toString(error) + desiredOutputs[dataSet][i]);
 		}
 
 		for (int i = 0; i < error.length; i++)

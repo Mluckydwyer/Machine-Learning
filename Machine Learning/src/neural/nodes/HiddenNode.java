@@ -9,7 +9,7 @@ public class HiddenNode {
 	public double[]	inputs;
 	private double		biasWeight;
 	private double		value;
-
+	
 	public HiddenNode() {
 		weights = new double [NeuralNetwork.inputNodes];
 		randomizeWeights();
