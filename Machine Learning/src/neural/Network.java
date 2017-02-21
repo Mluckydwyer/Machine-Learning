@@ -1,6 +1,5 @@
 package neural;
 
-import java.util.Arrays;
 import java.util.Scanner;
 
 import neural.NeuralNetwork;
@@ -14,6 +13,9 @@ public class Network implements Runnable {
 	private static HiddenNode[] hiddenNodes;
 	private static OutputNode[] outputNodes;
 
+	double[][] oldOutputWeights;
+	double[][] oldHiddenWeights;
+
 	private static double bias = 1;
 
 	private double[][] inputs;
@@ -24,6 +26,8 @@ public class Network implements Runnable {
 	private long runCount = 0;
 	private int epoch = 0;
 	private double lastTotalError = 0;
+	private double doubleLastTotalError = 0;
+	private double adaptiveLearningRate = 1.0;
 
 	public Network() {
 		inputNodes = new InputNode[NeuralNetwork.inputNodes];
@@ -31,6 +35,10 @@ public class Network implements Runnable {
 		outputNodes = new OutputNode[NeuralNetwork.outputNodes];
 
 		fillNodeArrays();
+
+		oldOutputWeights = new double[outputNodes.length][outputNodes[0].weights.length];
+		oldHiddenWeights = new double[hiddenNodes.length][hiddenNodes[0].weights.length];
+
 		dataSet = 0;
 	}
 
@@ -41,65 +49,69 @@ public class Network implements Runnable {
 		if (NeuralNetwork.TRAINING_EPOCHS > 0) {
 			for (int i = 0; i < NeuralNetwork.TRAINING_EPOCHS; i++) {
 				runTrainingSet();
-				System.out.println("Epoch: " + epoch + " Reached Error: " + lastTotalError);
+				if (epoch % 10000 == 0)
+					System.out.println("Epoch: " + epoch + " Reached Error: " + lastTotalError);
 				epoch++;
 			}
 		} else {
 			do {
 				runTrainingSet();
-				if (epoch % 100000 == 0) System.out.println("Epoch: " + epoch + " Reached Error: " + lastTotalError);
+				if (epoch % 10000 == 0)
+					System.out.println("Epoch: " + epoch + " Reached Error: " + lastTotalError + " Learning Rate: "
+							+ adaptiveLearningRate);
 				epoch++;
 			} while (lastTotalError > NeuralNetwork.DESIRED_ERROR);
-			
+
 			System.out.println("Epoch: " + epoch + " Reached Error: " + lastTotalError);
 		}
 
-		System.out.println("\nPlease enter some input data\n------------------------------------\n");
+		if (epoch % 10000 == 0)
+			System.out.println("\nPlease enter some input data\n------------------------------------\n");
 		Scanner s = new Scanner(System.in);
 
 		while (true) {
 			double[] testIn = new double[inputs[0].length];
-			
-			for (int i = 0; i < testIn.length; i++) 
+
+			for (int i = 0; i < testIn.length; i++)
 				testIn[i] = s.nextDouble();
-			
-			System.out.println(output(testIn) + "\n");			
-			}
+
+			System.out.println(output(testIn) + "\n");
+		}
 	}
 
 	private void runTrainingSet() {
 		lastTotalError = 0;
 
-		/*for (int j = 0; j < inputs.length; j++) {
+		/*
+		 * for (int j = 0; j < inputs.length; j++) { setInputs(inputs[j]);
+		 * double out = propagate();
+		 * 
+		 * System.out.println(out);
+		 * 
+		 * if (lastTotalError < out) lastTotalError = out; // lastTotalError +=
+		 * out; // System.out.println("Last Total Error For Epoch: " + epoch + "
+		 * // Data Set #" + dataSet + ": " + lastTotalError); backpropagate();
+		 */
+
+		for (int j = 0; j < inputs.length; j++) {
 			setInputs(inputs[j]);
-			double out = propagate();
+			dataSet = j;
+			double out;
 
-			System.out.println(out);
-			
-			if (lastTotalError < out)
-				lastTotalError = out;
-			// lastTotalError += out;
-			// System.out.println("Last Total Error For Epoch: " + epoch + "
-			// Data Set #" + dataSet + ": " + lastTotalError);
-			backpropagate();*/
-		
-		
-			for (int j = 0; j < inputs.length; j++) {
-				setInputs(inputs[j]);
-				dataSet = j;
-				double out;
-				
-				//do {
-					out = propagate();
-					
-					if (lastTotalError < out)
-						lastTotalError = out;
-					backpropagate();
-				//} while(out > NeuralNetwork.DESIRED_ERROR);
-			}
+			// do {
+			out = propagate();
+
+			doubleLastTotalError = lastTotalError;
+			lastTotalError = out;
+			if (NeuralNetwork.LEARNING_RATE_TYPE == 3 && epoch > 1)
+				updateLearningRate();
+
+			backpropagate();
+			// } while(out > NeuralNetwork.DESIRED_ERROR);
 		}
+	}
 
-	//}
+	// }
 
 	public void backpropagate() {
 		double[][] newOutputWeights = new double[outputNodes.length][outputNodes[0].weights.length];
@@ -110,15 +122,16 @@ public class Network implements Runnable {
 		for (int i = 0; i < newOutputWeights.length; i++)
 			for (int j = 0; j < newOutputWeights[i].length; j++) {
 				double w = 0;
-				//w = -1 * NeuralNetwork.LEARNING_RATE * hiddenNodes[j].getValue()
-				//		* (outputNodes[i].getValue() - desiredOutputs[dataSet][i]) * outputNodes[i].getValue()
-				//		* (1 - outputNodes[i].getValue());
-				
-				w = NeuralNetwork.LEARNING_RATE * (-(desiredOutputs[dataSet][i] - outputNodes[i].getValue()) * (outputNodes[i].getValue() * (1 - outputNodes[i].getValue()) * hiddenNodes[j].getValue()));
-				
-				
-				
-				
+				// w = -1 * NeuralNetwork.LEARNING_RATE *
+				// hiddenNodes[j].getValue()
+				// * (outputNodes[i].getValue() - desiredOutputs[dataSet][i]) *
+				// outputNodes[i].getValue()
+				// * (1 - outputNodes[i].getValue());
+
+				w = getLearningRate() * (-(desiredOutputs[dataSet][i] - outputNodes[i].getValue())
+						* (outputNodes[i].getValue() * (1 - outputNodes[i].getValue()) * hiddenNodes[j].getValue()));
+
+				oldOutputWeights[i] = outputNodes[i].weights;
 				newOutputWeights[i][j] = w;
 			}
 
@@ -128,26 +141,29 @@ public class Network implements Runnable {
 			double sumation = 0;
 
 			for (int x = 0; x < outputNodes.length; x++)
-				sumation += -(desiredOutputs[dataSet][i] - outputNodes[i].getValue()) * (outputNodes[i].getValue() * outputNodes[x].weights[i]);
-			
-				sumation *= hiddenNodes[i].getValue() * (1 - hiddenNodes[i].getValue());
-				
+				sumation += -(desiredOutputs[dataSet][i] - outputNodes[i].getValue())
+						* (outputNodes[i].getValue() * outputNodes[x].weights[i]);
+
+			sumation *= hiddenNodes[i].getValue() * (1 - hiddenNodes[i].getValue());
+
 			for (int j = 0; j < newHiddenWeights[i].length; j++) {
-				/*double w = 0;
+				/*
+				 * double w = 0;
+				 * 
+				 * double sumation = 0;
+				 * 
+				 * for (int x = 0; x < outputNodes.length; x++) sumation +=
+				 * outputNodes[x].weights[i] (((newOutputWeights[x][i] / -1) /
+				 * NeuralNetwork.LEARNING_RATE) / hiddenNodes[i].getValue());
+				 * 
+				 * w = -1 * NeuralNetwork.LEARNING_RATE *
+				 * inputNodes[j].getInput() * sumation *
+				 * hiddenNodes[i].getValue() (1 - hiddenNodes[i].getValue());
+				 */
 
-				double sumation = 0;
+				double w = getLearningRate() * sumation * inputNodes[j].getInput();
 
-				for (int x = 0; x < outputNodes.length; x++)
-					sumation += outputNodes[x].weights[i]
-							* (((newOutputWeights[x][i] / -1) / NeuralNetwork.LEARNING_RATE)
-									/ hiddenNodes[i].getValue());
-
-				w = -1 * NeuralNetwork.LEARNING_RATE * inputNodes[j].getInput() * sumation * hiddenNodes[i].getValue()
-						* (1 - hiddenNodes[i].getValue());
-				*/
-				
-				double w = NeuralNetwork.LEARNING_RATE * sumation * inputNodes[j].getInput();
-				
+				oldHiddenWeights[i] = hiddenNodes[i].weights;
 				newHiddenWeights[i][j] = w;
 			}
 		}
@@ -300,16 +316,49 @@ public class Network implements Runnable {
 		for (int i = 0; i < outputs.length; i++) {
 			// error[i] = Math.abs(outputs[i] - desiredOutputs[dataSet][i]);
 			error[i] = (.5 * Math.pow((desiredOutputs[dataSet][i] - outputs[i]), 2)); // Squared
-																					// Error
-																					// Function
-			
-			//System.out.println(Arrays.toString(outputs) + Arrays.toString(error) + desiredOutputs[dataSet][i]);
+																						// Error
+																						// Function
+
+			// System.out.println(Arrays.toString(outputs) +
+			// Arrays.toString(error) + desiredOutputs[dataSet][i]);
 		}
 
 		for (int i = 0; i < error.length; i++)
 			totalError += error[i];
 
 		return totalError;
+	}
+
+	@SuppressWarnings("unused")
+	public double getLearningRate() {
+		if (NeuralNetwork.LEARNING_RATE_TYPE == 1)
+			return NeuralNetwork.LEARNING_RATE / inputs.length;
+		else if (NeuralNetwork.LEARNING_RATE_TYPE == 2)
+			return NeuralNetwork.LEARNING_RATE;
+		else if (NeuralNetwork.LEARNING_RATE_TYPE == 3) {
+			return adaptiveLearningRate;
+		} else
+			return 0.0;
+	}
+
+	public void updateLearningRate() {
+		System.out.println("DLE: " + doubleLastTotalError + " LE: " + lastTotalError + " LR: "  + adaptiveLearningRate);
+		if (doubleLastTotalError >= lastTotalError)
+			adaptiveLearningRate *= 1.05;
+		else {
+			revertWeights();
+			adaptiveLearningRate /= 2;
+		}
+		System.out.println("NLR: " + adaptiveLearningRate);
+	}
+
+	private void revertWeights() {
+		// Output
+		for (int i = 0; i < outputNodes.length; i++)
+			outputNodes[i].weights = oldOutputWeights[i];
+		// Hidden
+		for (int i = 0; i < hiddenNodes.length; i++)
+			hiddenNodes[i].weights = oldHiddenWeights[i];
 	}
 
 	public static double getBias() {

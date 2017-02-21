@@ -37,7 +37,7 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 
 	private final int				pipeSpacing		= 600;
 	private final int				pipeWidth		= 100;
-	private final int				pipeGap			= 135;
+	private final int				pipeGap			= 150;
 	private final int				speed			= 5;
 	private final int				jumpHeight		= 13;
 
