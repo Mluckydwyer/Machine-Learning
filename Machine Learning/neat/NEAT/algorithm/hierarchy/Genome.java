@@ -157,7 +157,7 @@ public class Genome {
 
 	private void nodeMutate() {
 		if (!network.connections.isEmpty()) {
-			Node n = new Node(Node.NODE_TYPE_HIDDEN, network.getNextNodeID());
+			Node n = new Node(Node.NODE_TYPE_HIDDEN, Scholar.getNextNodeID());
 			Connection old = network.connections.get(new Random().nextInt(network.connections.size()));
 			Connection new1 = new Connection(old.getInNode(), n.getNodeID(), Scholar.getNextInnovationNum(), 1, true);
 			Connection new2 = new Connection(n.getNodeID(), old.getOutNode(), Scholar.getNextInnovationNum(), old.getWeight(), true);

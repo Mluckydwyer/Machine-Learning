@@ -1,4 +1,4 @@
-package NEAT.task.flappy;
+ package NEAT.task.flappy;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -56,7 +56,7 @@ public class FlappyBird extends Objective implements ActionListener, MouseListen
 
 	public static void main(String[] args) {
 		// SET THIS TO TRUE TO RUN THE NEAT LEARNING ENGINE
-		boolean RUN_NEAT_LEARNER = true;
+		boolean RUN_NEAT_LEARNER = false;
 		
 		if (!RUN_NEAT_LEARNER) System.out.println("Flappy Bird Game Starting In Play Mode");
 		else System.out.println("Flappy Bird Game Starting In NEAT Maching Learning Mode");

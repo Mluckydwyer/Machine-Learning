@@ -103,9 +103,9 @@ public class Generation {
 			Node n2 = g2.network.getNodeByID(n1.getNodeID());
 			
 			if (!n2.equals(null) && Math.random() < 0.5)
-				child.network.addNode(n2);
+				if (!child.network.hasNode(n1)) child.network.addNode(n2);
 			else
-				child.network.addNode(n1);
+				if (!child.network.hasNode(n1)) child.network.addNode(n1);
 		}
 		
 		child.resetNodes();

@@ -30,17 +30,25 @@ public class Scholar {
 	public static final double		DELTA_WEIGHTS						= 0.4;
 
 	private static int				innovationNumCounter;
+	private static int				nodeIDCounter;
+
 
 	public Scholar(Objective obj) {
 		Scholar.obj = obj;
 		generations = new ArrayList<Generation>();
 		innovationNumCounter = 1;
+		nodeIDCounter = obj.inputNodeCount + obj.outputNodeCount - 2;
 	}
 
 	public static int getNextInnovationNum() {
 		return innovationNumCounter++;
 	}
 
+	public static int getNextNodeID() {
+		nodeIDCounter += 1;
+		return nodeIDCounter;
+	}
+	
 	public void learn() {
 		Generation firstGen = new Generation();
 		firstGen.setFirstGen(true);

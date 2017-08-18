@@ -1,5 +1,7 @@
 package neural;
 
+import java.util.Arrays;
+import java.util.Random;
 import java.util.Scanner;
 
 import neural.NeuralNetwork;
@@ -22,18 +24,21 @@ public class Network implements Runnable {
 	private double[][] desiredOutputs;
 
 	private int dataSet;
+	private Random random;
 
 	private long runCount = 0;
 	private int epoch = 0;
 	private double lastTotalError = 0;
-	private double doubleLastTotalError = 0;
+	private double doubleLastTotalErrors[];
+	private double avgDLTE = 0.0;
 	private double adaptiveLearningRate = 1.0;
 
 	public Network() {
 		inputNodes = new InputNode[NeuralNetwork.inputNodes];
 		hiddenNodes = new HiddenNode[NeuralNetwork.hiddenNodes];
 		outputNodes = new OutputNode[NeuralNetwork.outputNodes];
-
+		
+		random = new Random(NeuralNetwork.RANDOM_SEED);
 		fillNodeArrays();
 
 		oldOutputWeights = new double[outputNodes.length][outputNodes[0].weights.length];
@@ -45,18 +50,19 @@ public class Network implements Runnable {
 	public void trainNetwork(double[][] inputs, double[][] desiredOutputs) {
 		this.inputs = inputs;
 		this.desiredOutputs = desiredOutputs;
+		doubleLastTotalErrors = new double[inputs.length];
 
 		if (NeuralNetwork.TRAINING_EPOCHS > 0) {
 			for (int i = 0; i < NeuralNetwork.TRAINING_EPOCHS; i++) {
 				runTrainingSet();
-				if (epoch % 10000 == 0)
-					System.out.println("Epoch: " + epoch + " Reached Error: " + lastTotalError);
+				if (epoch % 1000000 == 0)
+					System.out.println("Epoch: " + epoch + " Reached Error: " + avgDLTE + " LR: " + adaptiveLearningRate);
 				epoch++;
 			}
 		} else {
 			do {
 				runTrainingSet();
-				if (epoch % 10000 == 0)
+				if (epoch % 1000000 == 0)
 					System.out.println("Epoch: " + epoch + " Reached Error: " + lastTotalError + " Learning Rate: "
 							+ adaptiveLearningRate);
 				epoch++;
@@ -65,8 +71,8 @@ public class Network implements Runnable {
 			System.out.println("Epoch: " + epoch + " Reached Error: " + lastTotalError);
 		}
 
-		if (epoch % 10000 == 0)
-			System.out.println("\nPlease enter some input data\n------------------------------------\n");
+		System.out.println("Epoch: " + epoch + " Reached Error: " + avgDLTE + " LR: " + adaptiveLearningRate);
+		System.out.println("\nPlease enter some input data\n------------------------------------\n");
 		Scanner s = new Scanner(System.in);
 
 		while (true) {
@@ -80,7 +86,7 @@ public class Network implements Runnable {
 	}
 
 	private void runTrainingSet() {
-		lastTotalError = 0;
+		//lastTotalError = 0;
 
 		/*
 		 * for (int j = 0; j < inputs.length; j++) { setInputs(inputs[j]);
@@ -93,6 +99,8 @@ public class Network implements Runnable {
 		 * // Data Set #" + dataSet + ": " + lastTotalError); backpropagate();
 		 */
 
+		//System.out.println(Arrays.toString(doubleLastTotalErrors));
+		
 		for (int j = 0; j < inputs.length; j++) {
 			setInputs(inputs[j]);
 			dataSet = j;
@@ -101,14 +109,16 @@ public class Network implements Runnable {
 			// do {
 			out = propagate();
 
-			doubleLastTotalError = lastTotalError;
+			doubleLastTotalErrors[j] = lastTotalError;
 			lastTotalError = out;
-			if (NeuralNetwork.LEARNING_RATE_TYPE == 3 && epoch > 1)
-				updateLearningRate();
+			
 
 			backpropagate();
 			// } while(out > NeuralNetwork.DESIRED_ERROR);
 		}
+		
+		if (NeuralNetwork.LEARNING_RATE_TYPE == 3)
+			updateLearningRate();
 	}
 
 	// }
@@ -315,7 +325,7 @@ public class Network implements Runnable {
 
 		for (int i = 0; i < outputs.length; i++) {
 			// error[i] = Math.abs(outputs[i] - desiredOutputs[dataSet][i]);
-			error[i] = (.5 * Math.pow((desiredOutputs[dataSet][i] - outputs[i]), 2)); // Squared
+			error[i] = (0.5 * Math.pow((desiredOutputs[dataSet][i] - outputs[i]), 2)); // Squared
 																						// Error
 																						// Function
 
@@ -342,14 +352,29 @@ public class Network implements Runnable {
 	}
 
 	public void updateLearningRate() {
-		System.out.println("DLE: " + doubleLastTotalError + " LE: " + lastTotalError + " LR: "  + adaptiveLearningRate);
-		if (doubleLastTotalError >= lastTotalError)
-			adaptiveLearningRate *= 1.05;
-		else {
-			revertWeights();
-			adaptiveLearningRate /= 2;
+		
+		double sum = 0;
+		for (int j = 0; j < doubleLastTotalErrors.length; j++)
+			sum += doubleLastTotalErrors[j];
+		double currentDLTE = sum / doubleLastTotalErrors.length;
+		
+		if (epoch > 1) {
+		//System.out.println("DLE: " + avgDLTE + " LE: " + currentDLTE + " LR: " + adaptiveLearningRate);
+		
+			if (avgDLTE >= currentDLTE && adaptiveLearningRate < 1000)
+				adaptiveLearningRate *= 1.5;
+			else {
+				revertWeights();
+				adaptiveLearningRate /= 2;
+			}
+			
+			if (adaptiveLearningRate > 1000)
+				adaptiveLearningRate = 1000;
 		}
-		System.out.println("NLR: " + adaptiveLearningRate);
+		
+		//System.out.println("*NLR: " + adaptiveLearningRate + " Epoch: " + epoch);
+		
+		avgDLTE = currentDLTE;
 	}
 
 	private void revertWeights() {

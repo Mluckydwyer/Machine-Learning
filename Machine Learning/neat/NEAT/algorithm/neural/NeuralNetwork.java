@@ -11,17 +11,10 @@ public class NeuralNetwork {
 
 	public ArrayList<Node>			nodes;
 	public ArrayList<Connection>	connections;
-	private int						nodeIDCounter;
 
 	public NeuralNetwork() {
 		nodes = new ArrayList<Node>();
 		connections = new ArrayList<Connection>();
-		nodeIDCounter = -1;
-	}
-
-	public int getNextNodeID() {
-		nodeIDCounter += 1;
-		return nodeIDCounter;
 	}
 
 	public double[] evaluate(double[] inputs) {
@@ -67,10 +60,11 @@ public class NeuralNetwork {
 	}
 
 	public void addPuts() {
+		int id = 0;
 		for (int i = 0; i < Scholar.obj.inputNodeCount; i++)
-			addNode(new Node(Node.NODE_TYPE_INPUT, getNextNodeID()));
+			addNode(new Node(Node.NODE_TYPE_INPUT, id++));
 		for (int i = 0; i < Scholar.obj.outputNodeCount; i++)
-			addNode(new Node(Node.NODE_TYPE_OUTPUT, getNextNodeID()));
+			addNode(new Node(Node.NODE_TYPE_OUTPUT, id++));
 		sort();
 	}
 
@@ -131,8 +125,8 @@ public class NeuralNetwork {
 	}
 
 	public Node getNodeByID(int ID) {
-		for (Node n : nodes)
-			if (n.getNodeID() == ID) return n;
+		for (int i = 0; i < nodes.size(); i++)
+			if (nodes.get(i).getNodeID() == ID) return nodes.get(i);
 
 		return null;
 		// throw new NullPointerException(nodes + "\n" + ID);

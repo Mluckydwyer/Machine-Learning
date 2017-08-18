@@ -1,29 +1,34 @@
 package neural.nodes;
 
+import java.util.Random;
+
 import neural.Network;
 import neural.NeuralNetwork;
 
 public class OutputNode {
 
-	public double[]	weights;
-	public double[]	inputs;
+	public double[]		weights;
+	public double[]		inputs;
 	private double		biasWeight;
 	private double		value;
+	private Random		random;
+
 
 	public OutputNode() {
 		weights = new double [NeuralNetwork.hiddenNodes];
+		random = new Random(NeuralNetwork.RANDOM_SEED);
 		randomizeWeights();
 		setValue(0);
 	}
 
 	private void randomizeWeights() {
-		for (double l : weights) {
-			l = Math.random();
-			if (Math.random() > .5) l *= -1;
+		for (int i = 0; i < weights.length; i++) {
+			weights[i] = random.nextDouble();
+			if (random.nextDouble() > .5) weights[i] *= -1;
 		}
 
-		biasWeight = Math.random();
-		if (Math.random() > .5) biasWeight *= -1;
+		biasWeight = random.nextDouble();
+		if (random.nextDouble() > .5) biasWeight *= -1;
 	}
 
 	private void getData() {
