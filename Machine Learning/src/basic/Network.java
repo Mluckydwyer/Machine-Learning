@@ -6,6 +6,7 @@ public class Network {
 
 	public static double[][] data = { { 0.0, 0.0, 0.0 }, { 1.0, 1.0, 1.0 }, { 1.0, 0.0, 1.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, 1.0 },
 			{ 1.0, 1.0, 0.0 }, { 0.0, 1.0, 1.0 } };
+	public static double[][] summation;
 	public static double[][] weightsHidden; // [hidden node][input node]
 	public static double[] weightsHiddenBias;
 	public static double[] hidden; // [hidden node]
@@ -23,11 +24,12 @@ public class Network {
 		inputNodes = data[0].length;
 		outputNodes = expected[0].length;
 
-		weightsHidden = Matrix.random(inputNodes, hiddenNodes);
+		summation = new double[hiddenNodes][];
+		weightsHidden = Matrix.random(hiddenNodes, inputNodes);
 		weightsHiddenBias = Matrix.random(1, hiddenNodes)[0];
 		hidden = new double[hiddenNodes];
 
-		weightsOutput = Matrix.random(hiddenNodes, outputNodes);
+		weightsOutput = Matrix.random(outputNodes, hiddenNodes);
 		weightsOutputBias = Matrix.random(1, outputNodes)[0];
 		output = new double[outputNodes];
 
@@ -48,8 +50,8 @@ public class Network {
 
 	public static void backpropagate(int dataIndex, double[] error) {
 		weightsOutput = Matrix.multiply(Matrix.multiply1(Matrix.multiply(Matrix.multiply(weightsOutput, learningRate), -1D), Matrix.subtract(expected[dataIndex], output)), Matrix.subtract(1D, Matrix.multiply2(output, hidden)));
-		
-		weightsHidden = Matrix.multiply(Matrix.multiply1(Matrix.multiply(Matrix.multiply(weightsHidden, learningRate), data[dataIndex]), ));
+		summation = Matrix.multiply(Matrix.multiply1(Matrix.multiply(Matrix.multiply(weightsOutput, learningRate), -1D), Matrix.subtract(expected[dataIndex], output)), weightsOutput); //up to 
+		weightsHidden = Matrix.multiply(Matrix.multiply1(Matrix.multiply(Matrix.multiply(weightsHidden, learningRate), data[dataIndex]), summation));
 
 	public static double[] sigmoid(double[] nums) {
 		double[] sigs = new double[nums.length];
