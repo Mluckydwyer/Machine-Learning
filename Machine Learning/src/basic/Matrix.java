@@ -79,6 +79,17 @@ public class Matrix {
 		return c;
 	}
 
+	// return vertical summation
+	public static double[] addVertical(double[][] a) {
+		int m = a.length;
+		int n = a[0].length;
+		double[] c = new double[m]
+		for (int i = 0; i < m; i++)
+			for (int j = 0; j < n; j++)
+				c[i] += a[i][j];	
+		return c;
+	}
+	
 	// return c = a - b
 	public static double[][] subtract(double[][] a, double[][] b) {
 		int m = a.length;
